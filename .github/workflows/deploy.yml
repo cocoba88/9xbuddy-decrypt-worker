@@ -10,11 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
       - name: Install Wrangler
-        run: npm install -g wrangler
-      - name: Login to Cloudflare
-        run: wrangler login
+        run: npm install -g wrangler@4
+
       - name: Deploy Worker
-        run: wrangler deploy
+        run: |
+          echo "Deploying Worker..."
+          wrangler deploy
         env:
           P8v1e8XkT-eSmLb9gLvoGyEenDFRlPcxGv7aPGKD: ${{ secrets.CF_API_TOKEN }}
