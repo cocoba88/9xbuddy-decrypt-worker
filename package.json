@@ -1,0 +1,12 @@
+{
+  "name": "9xbuddy-decrypt-worker",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^3.x.x"
+  }
+}
