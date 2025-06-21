@@ -17,4 +17,4 @@ jobs:
       - name: Deploy Worker
         run: wrangler deploy
         env:
-          Tizn8ttvkvIdBLlZ5AlPfI1aFZ_Crdcx7-LcotkH: ${{ secrets.CF_API_TOKEN }}
+          P8v1e8XkT-eSmLb9gLvoGyEenDFRlPcxGv7aPGKD: ${{ secrets.CF_API_TOKEN }}
