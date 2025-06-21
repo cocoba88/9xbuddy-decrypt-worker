@@ -2,6 +2,10 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    if (url.pathname === "/") {
+      return new Response("9xbuddy Decrypt Worker is running.", { status: 200 });
+    }
+
     if (url.pathname === "/health") {
       return new Response("Worker is running!", { status: 200 });
     }
