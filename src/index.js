@@ -14,8 +14,7 @@ export default {
       try {
         const { encryptedUrl } = await request.json();
 
-        // Contoh sederhana parsing (ganti dengan algoritma nyata nanti)
-        const decrypted = parseEncryptedURL(encryptedUrl);
+        const decrypted = await decryptFrom9xbuddy(encryptedUrl);
 
         if (decrypted && Object.keys(decrypted).length > 0) {
           return new Response(JSON.stringify({ data: decrypted }), {
@@ -23,7 +22,7 @@ export default {
           });
         } else {
           return new Response(JSON.stringify({ error: "No quality links found" }), {
-            status: 400,
+            status: 404,
             headers: { "Content-Type": "application/json" },
           });
         }
@@ -39,17 +38,25 @@ export default {
   },
 };
 
-// Fungsi parsing dummy — ganti dengan algoritma nyata dari repo masa2146
-function parseEncryptedURL(url) {
+// Fungsi utama untuk fetch dan parse dari 9xbuddy
+async function decryptFrom9xbuddy(encryptedUrl) {
   const result = {};
-  const base = url.split("?url=")[0] || "";
-  const encoded = url.split("?url=")[1] || "";
+  const apiUrl = `https://9xbuddy.com/process?url=${encodeURIComponent(encryptedUrl)}`;
 
-  ["360p", "480p", "720p", "1080p"].forEach((quality) => {
-    if (encoded.includes(quality)) {
-      result[quality] = `${base}?url=${decodeURIComponent(encoded)}`;
-    }
+  const res = await fetch(apiUrl, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; CloudflareWorkerBot/1.0)",
+    },
   });
+
+  const html = await res.text();
+
+  // Parse <a href="...">[Quality]</a> seperti pada 9xbuddy
+  const links = [...html.matchAll(/<a[^>]+href="([^"]+)"[^>]*>(\d{3,4}p)<\/a>/g)];
+
+  for (const [, href, quality] of links) {
+    result[quality] = href;
+  }
 
   return result;
 }
