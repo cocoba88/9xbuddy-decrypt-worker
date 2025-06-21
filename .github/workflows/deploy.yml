@@ -24,4 +24,4 @@ jobs:
           echo "Deploying Worker..."
           wrangler deploy
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.NFHIX2-tdgPBUJabpmVxj1KnBniUcK0XWn_nOA4J }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.MxaTuoClw9-NrLaT4LNohs5VjsXVBfk1JsCzvRPO }}
