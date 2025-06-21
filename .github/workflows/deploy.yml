@@ -24,4 +24,4 @@ jobs:
           echo "Deploying Worker..."
           wrangler deploy
         env:
-          P8v1e8XkT-eSmLb9gLvoGyEenDFRlPcxGv7aPGKD: ${{ secrets.CF_API_TOKEN }}
+          MDIQTOH8GcddfHFgy3637pLniUCJFz3CoYnqAQ3T: ${{ secrets.CF_API_TOKEN }}
