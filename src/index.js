@@ -18,6 +18,37 @@ export default {
   },
 };
 
+async function handleDebugHtml(request) {
+  try {
+    const { encryptedUrl } = await request.json();
+
+    if (!encryptedUrl) {
+      return new Response(
+        JSON.stringify({ error: "Missing 'encryptedUrl'" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const processUrl = `https://9xbuddy.com/process?url=${encodeURIComponent(encryptedUrl)}`;
+    const res = await fetch(processUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; CFWorkerBot/1.0)",
+      },
+    });
+
+    const html = await res.text();
+    return new Response(html, {
+      headers: { "Content-Type": "text/html" },
+    });
+
+  } catch (e) {
+    return new Response(
+      JSON.stringify({ error: "Internal Server Error", details: e.message }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}
+
 async function handleDecrypt(request) {
   try {
     const { encryptedUrl } = await request.json();
@@ -44,6 +75,8 @@ async function handleDecrypt(request) {
     }
 
     const html = await res.text();
+
+    // 🔁 Ganti regex agar tidak tergantung ekstensi file
     const videoLinks = extractVideoLinks(html);
 
     if (videoLinks.length === 0) {
@@ -72,9 +105,33 @@ async function handleDecrypt(request) {
   }
 }
 
-// Fungsi sederhana untuk ekstrak link video dari HTML
+// Fungsi baru: ekstrak semua link yang mungkin adalah video
 function extractVideoLinks(html) {
-  const regex = /https?:\/\/[^"']+\.(mp4|webm|mkv|flv|m3u8)/gi;
+  const regex = /https?:\/\/(?:[^\s"']+)/gi;
+
+  // Ambil semua link yang ditemukan
   const matches = html.match(regex) || [];
-  return [...new Set(matches)];
+
+  // Filter hanya link yang mengandung pola mirip video
+  const videoPatterns = [
+    "c2\\.9xbud\\.com\\/v\\/",
+    "o4\\.9xbud\\.com\\/v\\/",
+    "files\\.video-src\\.com\\/media\\/video\\/.*?\\d+",
+    "\\/v\\/[-a-zA-Z0-9]+",
+    "\\/video\\/[-a-zA-Z0-9]+"
+  ];
+
+  const filtered = matches.filter(link => {
+    return videoPatterns.some(pattern => {
+      try {
+        const re = new RegExp(pattern, "i");
+        return re.test(link);
+      } catch {
+        return false;
+      }
+    });
+  });
+
+  // Hilangkan duplikasi
+  return [...new Set(filtered)];
 }
