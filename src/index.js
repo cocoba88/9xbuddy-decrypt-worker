@@ -18,23 +18,63 @@ export default {
   },
 };
 
-async function handleDebugHtml(request) {
-  const { encryptedUrl } = await request.json();
-  const processUrl = `https://9xbuddy.com/process?url=${encodeURIComponent(encryptedUrl)}`;
-  const res = await fetch(processUrl, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (compatible; CFWorkerBot/1.0)",
-    },
-  });
-  const html = await res.text();
-  return new Response(html, {
-    headers: { "Content-Type": "text/html" },
-  });
+async function handleDecrypt(request) {
+  try {
+    const { encryptedUrl } = await request.json();
+
+    if (!encryptedUrl) {
+      return new Response(
+        JSON.stringify({ error: "Missing 'encryptedUrl'" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const processUrl = `https://9xbuddy.com/process?url=${encodeURIComponent(encryptedUrl)}`;
+    const res = await fetch(processUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; CFWorkerBot/1.0)",
+      },
+    });
+
+    if (!res.ok) {
+      return new Response(
+        JSON.stringify({ error: "Failed to load 9xbuddy page" }),
+        { status: 502, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const html = await res.text();
+    const videoLinks = extractVideoLinks(html);
+
+    if (videoLinks.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "No video links found" }),
+        { status: 404, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({
+        status: "success",
+        data: {
+          decryptedUrl: videoLinks[0],
+          allLinks: videoLinks,
+        },
+      }),
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+  } catch (e) {
+    return new Response(
+      JSON.stringify({ error: "Internal Server Error", details: e.message }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
 }
 
-async function handleDecrypt(request) {
-  // (kode sebelumnya kalau kamu ingin kembalikan JSON list link)
-  return new Response(JSON.stringify({ message: "Decrypt in progress..." }), {
-    headers: { "Content-Type": "application/json" },
-  });
+// Fungsi sederhana untuk ekstrak link video dari HTML
+function extractVideoLinks(html) {
+  const regex = /https?:\/\/[^"']+\.(mp4|webm|mkv|flv|m3u8)/gi;
+  const matches = html.match(regex) || [];
+  return [...new Set(matches)];
 }
